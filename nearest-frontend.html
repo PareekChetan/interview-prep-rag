@@ -302,7 +302,7 @@
     <div id="gapResults"></div>
   </div>
 
-  <footer>localhost:8080 &nbsp;·&nbsp; results ranked by cosine distance</footer>
+  <footer>interview-prep-rag.onrender.com &nbsp;·&nbsp; results ranked by cosine distance</footer>
 </div>
 
 <script>
@@ -383,7 +383,7 @@
         </div>
       `).join('');
     } catch (err) {
-      searchResults.innerHTML = `<p class="error">Couldn't reach the API — make sure your Spring Boot app is running on localhost:8080. (${escapeHtml(err.message)})</p>`;
+      searchResults.innerHTML = `<p class="error">Couldn't reach the API — make sure your Spring Boot app is running on interview-prep-rag.onrender.com. (${escapeHtml(err.message)})</p>`;
     }
   }
 
@@ -422,7 +422,7 @@
         </div>
       `).join('');
     } catch (err) {
-      gapResults.innerHTML = `<p class="error">Couldn't reach the API — make sure your Spring Boot app is running on localhost:8080. (${escapeHtml(err.message)})</p>`;
+      gapResults.innerHTML = `<p class="error">Couldn't reach the API — make sure your Spring Boot app is running on interview-prep-rag.onrender.com. (${escapeHtml(err.message)})</p>`;
     }
   }
 
