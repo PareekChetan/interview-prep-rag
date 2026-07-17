@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nearest — company interview pattern search</title>
+<style>
+  :root {
+    --bg: #14181f;
+    --surface: #1e2530;
+    --surface-raised: #262e3b;
+    --border: #333d4d;
+    --text: #e8e6de;
+    --text-muted: #8b93a3;
+    --accent: #e8a33d;
+    --accent-dim: #6b5730;
+    --good: #6fa88a;
+    --mono: 'IBM Plex Mono', 'Consolas', monospace;
+    --sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  header {
+    margin-bottom: 48px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: 42px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+
+  .sub {
+    color: var(--text-muted);
+    font-size: 16px;
+    max-width: 520px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  input, textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 11px 14px;
+    font-family: var(--sans);
+    font-size: 14px;
+    flex: 1;
+    min-width: 160px;
+  }
+
+  input:focus, textarea:focus, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  input::placeholder { color: var(--text-muted); }
+
+  button {
+    background: var(--accent);
+    color: #1a1508;
+    border: none;
+    border-radius: 6px;
+    padding: 11px 20px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+  }
+
+  button:hover { filter: brightness(1.1); }
+  button:active { filter: brightness(0.95); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 100px;
+    cursor: pointer;
+  }
+
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  .result {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-top: 12px;
+    background: var(--surface-raised);
+  }
+
+  .result-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .result-meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  .result-meta .role {
+    color: var(--text-muted);
+  }
+
+  .result-text {
+    font-size: 15px;
+    margin: 0 0 12px;
+  }
+
+  .pattern-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+
+  .closeness {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .closeness-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .closeness-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .closeness-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-dim), var(--good));
+    border-radius: 100px;
+  }
+
+  .empty, .loading, .error {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 20px 0;
+  }
+
+  .error { color: #e08585; }
+
+  .gap-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .gap-row:last-child { border-bottom: none; }
+
+  .gap-pattern { font-size: 14px; }
+
+  .gap-count {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--bg);
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+
+  footer {
+    margin-top: 40px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">nearest-neighbor retrieval</div>
+    <h1>Nearest</h1>
+    <p class="sub">Search stored interview questions by meaning, not keywords — then see exactly which patterns a company favors that you haven't covered yet.</p>
+  </header>
+
+  <div class="panel">
+    <p class="panel-title"><span class="dot"></span>search by meaning</p>
+    <div class="row">
+      <input id="searchQuery" type="text" placeholder="e.g. shortest path in a grid, LRU cache design..." />
+      <input id="searchCompany" type="text" placeholder="Company (optional)" style="max-width: 180px;" />
+      <button id="searchBtn">Search</button>
+    </div>
+    <div class="chips">
+      <span class="chip" data-company="Amazon">Amazon</span>
+      <span class="chip" data-company="Google">Google</span>
+      <span class="chip" data-company="Microsoft">Microsoft</span>
+      <span class="chip" data-company="Flipkart">Flipkart</span>
+      <span class="chip" data-company="Adobe">Adobe</span>
+      <span class="chip" data-company="Swiggy">Swiggy</span>
+      <span class="chip" data-company="PhonePe">PhonePe</span>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+
+  <div class="panel">
+    <p class="panel-title"><span class="dot"></span>gap analysis</p>
+    <div class="row">
+      <input id="gapCompany" type="text" placeholder="Company, e.g. Amazon" style="max-width: 200px;" />
+      <input id="gapSolved" type="text" placeholder="Patterns you've solved, comma-separated (e.g. Arrays, Strings)" />
+      <button id="gapBtn">Find gaps</button>
+    </div>
+    <div id="gapResults"></div>
+  </div>
+
+  <footer>localhost:8080 &nbsp;·&nbsp; results ranked by cosine distance</footer>
+</div>
+
+<script>
+  const API = 'https://interview-prep-rag.onrender.com';
+
+  const searchQuery = document.getElementById('searchQuery');
+  const searchCompany = document.getElementById('searchCompany');
+  const searchBtn = document.getElementById('searchBtn');
+  const searchResults = document.getElementById('searchResults');
+
+  const gapCompany = document.getElementById('gapCompany');
+  const gapSolved = document.getElementById('gapSolved');
+  const gapBtn = document.getElementById('gapBtn');
+  const gapResults = document.getElementById('gapResults');
+
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      searchCompany.value = chip.dataset.company;
+      if (!searchQuery.value.trim()) searchQuery.value = 'interview question';
+      runSearch();
+    });
+  });
+
+  searchBtn.addEventListener('click', runSearch);
+  searchQuery.addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
+
+  gapBtn.addEventListener('click', runGapAnalysis);
+  gapSolved.addEventListener('keydown', e => { if (e.key === 'Enter') runGapAnalysis(); });
+
+  // Distance is a cosine distance: 0 = identical direction, higher = less similar.
+  // We convert it to a 0-100% "closeness" bar so it reads intuitively instead
+  // of as a raw decimal that means nothing at a glance.
+  function distanceToCloseness(distance) {
+    const closeness = Math.max(0, Math.min(1, 1 - distance / 2));
+    return Math.round(closeness * 100);
+  }
+
+  async function runSearch() {
+    const query = searchQuery.value.trim();
+    if (!query) {
+      searchResults.innerHTML = '<p class="error">Type something to search for first.</p>';
+      return;
+    }
+
+    searchResults.innerHTML = '<p class="loading">Searching…</p>';
+
+    try {
+      const res = await fetch(`${API}/api/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          company: searchCompany.value.trim() || null,
+          limit: 8
+        })
+      });
+
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const data = await res.json();
+
+      if (!data.length) {
+        searchResults.innerHTML = '<p class="empty">No matches found. Try a broader query or clear the company filter.</p>';
+        return;
+      }
+
+      searchResults.innerHTML = data.map(r => `
+        <div class="result">
+          <div class="result-top">
+            <span class="result-meta">${escapeHtml(r.company)} <span class="role">· ${escapeHtml(r.role || '—')}</span></span>
+          </div>
+          <span class="pattern-tag">${escapeHtml(r.pattern || 'uncategorized')}</span>
+          <p class="result-text">${escapeHtml(r.questionText)}</p>
+          <div class="closeness">
+            <span class="closeness-label">match</span>
+            <div class="closeness-track"><div class="closeness-fill" style="width: ${distanceToCloseness(r.distance)}%"></div></div>
+            <span class="closeness-label">${distanceToCloseness(r.distance)}%</span>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      searchResults.innerHTML = `<p class="error">Couldn't reach the API — make sure your Spring Boot app is running on localhost:8080. (${escapeHtml(err.message)})</p>`;
+    }
+  }
+
+  async function runGapAnalysis() {
+    const company = gapCompany.value.trim();
+    if (!company) {
+      gapResults.innerHTML = '<p class="error">Enter a company name first.</p>';
+      return;
+    }
+
+    const solvedPatterns = gapSolved.value.split(',').map(s => s.trim()).filter(Boolean);
+
+    gapResults.innerHTML = '<p class="loading">Analyzing…</p>';
+
+    try {
+      const res = await fetch(`${API}/api/gap-analysis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company, solvedPatterns })
+      });
+
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const data = await res.json();
+
+      if (!data.gaps || !data.gaps.length) {
+        gapResults.innerHTML = '<p class="empty">No gaps found — either you\'ve covered everything on record, or there\'s no data for this company yet.</p>';
+        return;
+      }
+
+      const maxCount = Math.max(...data.gaps.map(g => g.questionCount));
+
+      gapResults.innerHTML = data.gaps.map(g => `
+        <div class="gap-row">
+          <span class="gap-pattern">${escapeHtml(g.pattern)}</span>
+          <span class="gap-count">${g.questionCount} question${g.questionCount === 1 ? '' : 's'}</span>
+        </div>
+      `).join('');
+    } catch (err) {
+      gapResults.innerHTML = `<p class="error">Couldn't reach the API — make sure your Spring Boot app is running on localhost:8080. (${escapeHtml(err.message)})</p>`;
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+</script>
+
+</body>
+</html>
